@@ -13,8 +13,9 @@ type UnionFS []fs.FS
 // Open returns the file from the first filesystem that does not return an ErrNotExist. If the file
 // does not exist in any filesystem, an ErrNotExist will be returned.
 func (u UnionFS) Open(name string) (fs.File, error) {
-	if !fs.ValidPath(name) {
-		return nil, &fs.PathError{Op: "open", Path: name, Err: fs.ErrInvalid}
+	err := Check(name)
+	if err != nil {
+		return nil, err
 	}
 	for _, i := range u {
 		f, err := i.Open(name)
