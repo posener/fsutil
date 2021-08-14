@@ -5,6 +5,7 @@ import (
 	"testing"
 	"testing/fstest"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -27,6 +28,17 @@ func TestUnionFS(t *testing.T) {
 	assertContent(t, u, "f2", "fs1")
 	assertContent(t, u, "f3", "fs2")
 	assertNotExists(t, u, "f4")
+
+	t.Run("ReadDir", func(t *testing.T) {
+		files, err := fs.ReadDir(u, ".")
+		require.NoError(t, err)
+		var names []string
+		for _, f := range files {
+			names = append(names, f.Name())
+		}
+		want := []string{"f1", "f2", "f3"}
+		assert.Equal(t, want, names)
+	})
 }
 
 func TestUnionFSSub(t *testing.T) {
