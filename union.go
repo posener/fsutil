@@ -30,12 +30,19 @@ func (u UnionFS) Open(name string) (fs.File, error) {
 // implementation.
 func (u UnionFS) ReadDir(name string) ([]fs.DirEntry, error) {
 	var list []fs.DirEntry
+	set := map[string]bool{}
 	for _, i := range u {
 		l, err := fs.ReadDir(i, name)
 		if err != nil {
 			return nil, err
 		}
-		list = append(list, l...)
+		for _, item := range l {
+			if set[item.Name()] {
+				continue // Don't override existing files.
+			}
+			set[item.Name()] = true
+			list = append(list, item)
+		}
 	}
 	return list, nil
 }
@@ -82,12 +89,19 @@ func (u UnionFS) Sub(dir string) (fs.FS, error) {
 // implementation.
 func (u UnionFS) Glob(pattern string) ([]string, error) {
 	var names []string
+	set := map[string]bool{}
 	for _, i := range u {
 		s, err := fs.Glob(i, pattern)
 		if err != nil {
 			return nil, err
 		}
-		names = append(names, s...)
+		for _, name := range s {
+			if set[name] {
+				continue
+			}
+			set[name] = true
+			names = append(names, name)
+		}
 	}
 	return names, nil
 }
